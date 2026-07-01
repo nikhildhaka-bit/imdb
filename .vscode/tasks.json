@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "backend: dev server",
+      "type": "shell",
+      "command": "${workspaceFolder}/backend/venv/Scripts/python.exe",
+      "args": ["-m", "uvicorn", "main:app", "--reload", "--port", "8000"],
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "presentation": { "group": "app", "panel": "dedicated", "clear": true },
+      "problemMatcher": {
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Will watch for changes.*",
+          "endsPattern": ".*Application startup complete.*"
+        }
+      }
+    },
+    {
+      "label": "frontend: dev server",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "isBackground": true,
+      "presentation": { "group": "app", "panel": "dedicated", "clear": true },
+      "problemMatcher": {
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*VITE.*",
+          "endsPattern": ".*ready in.*"
+        }
+      }
+    },
+    {
+      "label": "run: full app",
+      "dependsOn": ["backend: dev server", "frontend: dev server"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
+}

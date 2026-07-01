@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skeleton Screen Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #141414;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      color: white;
+    }
+
+    h2 { margin-bottom: 20px; font-size: 22px; color: #e5e5e5; }
+
+    /* ── SEARCH BAR ── */
+    .search-wrapper {
+      position: relative;
+      width: 380px;
+      margin-bottom: 30px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 0;
+    }
+
+    input {
+      padding: 10px 16px;
+      border-radius: 6px 0 0 6px;
+      border: none;
+      background: #333;
+      color: white;
+      font-size: 15px;
+      width: 100%;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #e50914;
+      color: white;
+      border: none;
+      border-radius: 0 6px 6px 0;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    button:hover { background: #b20710; }
+
+    /* ── AUTOCOMPLETE DROPDOWN ── */
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 0 0 8px 8px;
+      z-index: 100;
+      display: none;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .suggestions.visible { display: block; }
+
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+      transition: background 0.15s;
+    }
+
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: #2a2a2a; }
+
+    .suggestion-emoji { font-size: 26px; min-width: 36px; text-align: center; }
+
+    .suggestion-text { flex: 1; }
+    .suggestion-title { font-size: 14px; color: #e5e5e5; font-weight: bold; }
+    .suggestion-meta  { font-size: 12px; color: #999; margin-top: 2px; }
+
+    .suggestion-rating { font-size: 13px; color: #f5c518; }
+
+    /* skeleton suggestion */
+    .suggestion-skeleton {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #333;
+    }
+
+    .sk-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      flex-shrink: 0;
+    }
+
+    .sk-lines { flex: 1; }
+
+    .sk-line {
+      height: 11px; border-radius: 4px; margin-bottom: 6px;
+      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+
+    .sk-line.short { width: 50%; }
+
+    /* ── MOVIE GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+
+    .skeleton-card { background: #1e1e1e; border-radius: 8px; overflow: hidden; }
+
+    .skeleton-poster {
+      width: 100%; height: 240px;
+      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .skeleton-info { padding: 10px; }
+
+    .skeleton-title {
+      height: 14px; width: 80%; border-radius: 4px; margin-bottom: 8px;
+      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .skeleton-rating {
+      height: 12px; width: 40%; border-radius: 4px;
+      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .movie-card {
+      background: #1e1e1e; border-radius: 8px; overflow: hidden;
+      cursor: pointer; transition: transform 0.2s;
+      animation: fadeIn 0.4s ease forwards; opacity: 0;
+    }
+
+    .movie-card:hover { transform: scale(1.04); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .movie-poster-placeholder {
+      width: 100%; height: 240px; background: #2a2a2a;
+      display: flex; align-items: center; justify-content: center; font-size: 48px;
+    }
+
+    .movie-info { padding: 10px; }
+    .movie-title { font-size: 13px; font-weight: bold; color: #e5e5e5; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .movie-rating { font-size: 12px; color: #f5c518; }
+    .movie-year   { font-size: 11px; color: #999; margin-top: 2px; }
+
+    .status { font-size: 13px; color: #999; margin-bottom: 16px; min-height: 18px; }
+  </style>
+</head>
+<body>
+
+  <h2>IMDB Clone — Typeahead + Skeleton Demo</h2>
+
+  <div class="search-wrapper">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Search movies..." autocomplete="off" />
+      <button onclick="doSearch()">Search</button>
+    </div>
+    <div class="suggestions" id="suggestions"></div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const ALL_MOVIES = [
+      { title: "Inception",          year: 2010, rating: 8.8, emoji: "🌀", genres: "Sci-Fi, Thriller" },
+      { title: "The Dark Knight",    year: 2008, rating: 9.0, emoji: "🦇", genres: "Action, Crime" },
+      { title: "Interstellar",       year: 2014, rating: 8.6, emoji: "🚀", genres: "Sci-Fi, Drama" },
+      { title: "The Matrix",         year: 1999, rating: 8.7, emoji: "💊", genres: "Sci-Fi, Action" },
+      { title: "Avengers: Endgame",  year: 2019, rating: 8.4, emoji: "🛡️", genres: "Action, Sci-Fi" },
+      { title: "Parasite",           year: 2019, rating: 8.5, emoji: "🏠", genres: "Thriller, Drama" },
+      { title: "Joker",              year: 2019, rating: 8.4, emoji: "🃏", genres: "Crime, Drama" },
+      { title: "1917",               year: 2019, rating: 8.3, emoji: "⚔️", genres: "War, Drama" },
+      { title: "Dune",               year: 2021, rating: 8.0, emoji: "🏜️", genres: "Sci-Fi, Adventure" },
+      { title: "Oppenheimer",        year: 2023, rating: 8.9, emoji: "💥", genres: "Drama, History" },
+      { title: "Tenet",              year: 2020, rating: 7.3, emoji: "⏪", genres: "Action, Sci-Fi" },
+      { title: "Gravity",            year: 2013, rating: 7.7, emoji: "🌍", genres: "Sci-Fi, Thriller" },
+      { title: "The Avengers",       year: 2012, rating: 8.0, emoji: "⚡", genres: "Action, Sci-Fi" },
+      { title: "Arrival",            year: 2016, rating: 7.9, emoji: "🛸", genres: "Sci-Fi, Drama" },
+      { title: "The Prestige",       year: 2006, rating: 8.5, emoji: "🎩", genres: "Mystery, Thriller" },
+      { title: "Dunkirk",            year: 2017, rating: 7.8, emoji: "🌊", genres: "War, Action" },
+    ];
+
+    let debounceTimer = null;
+
+    // ── TYPEAHEAD ──
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      clearTimeout(debounceTimer);
+
+      if (query.length < 2) {
+        hideSuggestions();
+        return;
+      }
+
+      // Show skeleton suggestions immediately
+      showSkeletonSuggestions();
+
+      // Debounce: wait 400ms after user stops typing before "fetching"
+      debounceTimer = setTimeout(() => {
+        const results = ALL_MOVIES.filter(m =>
+          m.title.toLowerCase().includes(query.toLowerCase())
+        );
+        showSuggestions(results, query);
+      }, 400);
+    });
+
+    document.getElementById('searchInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { hideSuggestions(); doSearch(); }
+      if (e.key === 'Escape') hideSuggestions();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrapper')) hideSuggestions();
+    });
+
+    function showSkeletonSuggestions() {
+      const box = document.getElementById('suggestions');
+      box.innerHTML = Array(4).fill(0).map(() => `
+        <div class="suggestion-skeleton">
+          <div class="sk-circle"></div>
+          <div class="sk-lines">
+            <div class="sk-line"></div>
+            <div class="sk-line short"></div>
+          </div>
+        </div>
+      `).join('');
+      box.classList.add('visible');
+    }
+
+    function showSuggestions(movies, query) {
+      const box = document.getElementById('suggestions');
+      if (!movies.length) {
+        box.innerHTML = `<div class="suggestion-item" style="color:#888">No results for "${query}"</div>`;
+      } else {
+        box.innerHTML = movies.slice(0, 6).map(m => `
+          <div class="suggestion-item" onclick="selectMovie('${m.title}')">
+            <div class="suggestion-emoji">${m.emoji}</div>
+            <div class="suggestion-text">
+              <div class="suggestion-title">${highlight(m.title, query)}</div>
+              <div class="suggestion-meta">${m.year} · ${m.genres}</div>
+            </div>
+            <div class="suggestion-rating">⭐ ${m.rating}</div>
+          </div>
+        `).join('');
+      }
+      box.classList.add('visible');
+    }
+
+    function highlight(text, query) {
+      const re = new RegExp(`(${query})`, 'gi');
+      return text.replace(re, '<mark style="background:#e50914;color:white;border-radius:2px">$1</mark>');
+    }
+
+    function hideSuggestions() {
+      document.getElementById('suggestions').classList.remove('visible');
+    }
+
+    function selectMovie(title) {
+      document.getElementById('searchInput').value = title;
+      hideSuggestions();
+      doSearch();
+    }
+
+    // ── GRID SEARCH ──
+    function showSkeletons(count = 12) {
+      document.getElementById('grid').innerHTML = Array(count).fill(0).map(() => `
+        <div class="skeleton-card">
+          <div class="skeleton-poster"></div>
+          <div class="skeleton-info">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-rating"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showMovies(movies) {
+      document.getElementById('grid').innerHTML = movies.map((m, i) => `
+        <div class="movie-card" style="animation-delay:${i * 0.05}s">
+          <div class="movie-poster-placeholder">${m.emoji}</div>
+          <div class="movie-info">
+            <div class="movie-title">${m.title}</div>
+            <div class="movie-rating">⭐ ${m.rating}</div>
+            <div class="movie-year">${m.year}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function doSearch() {
+      const query = document.getElementById('searchInput').value.trim();
+      const status = document.getElementById('status');
+      hideSuggestions();
+
+      status.textContent = `Searching for "${query || 'movies'}"...`;
+      showSkeletons(12);
+
+      await new Promise(r => setTimeout(r, 1500));
+
+      const results = query
+        ? ALL_MOVIES.filter(m => m.title.toLowerCase().includes(query.toLowerCase()))
+        : ALL_MOVIES;
+
+      showMovies(results.length ? results : ALL_MOVIES);
+      status.textContent = `${results.length || ALL_MOVIES.length} results for "${query || 'movies'}"`;
+    }
+
+    doSearch();
+  </script>
+</body>
+</html>
