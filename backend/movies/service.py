@@ -1,11 +1,16 @@
+import logging
 from datetime import date, datetime, timedelta, timezone
 
+import httpx
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from config import settings
 from models import FeedCache, Genre, Movie, MovieCredit, MovieGenre, Person, Rating, WatchlistItem
 from movies.schemas import MovieCardOut
 from movies.tmdb_client import tmdb_client
+
+logger = logging.getLogger(__name__)
 
 STALE_AFTER = timedelta(days=settings.tmdb_stale_after_days)
 
@@ -104,9 +109,17 @@ async def get_or_sync_movie(db: Session, tmdb_id: int) -> Movie:
     """Cache-on-demand with serve-stale-while-revalidate (D4)."""
     movie = db.get(Movie, tmdb_id)
     if movie is not None and not _is_stale(movie.synced_at):
+        logger.debug(f"Movie {tmdb_id} served from cache")
         return movie
 
-    payload = await tmdb_client.get_movie(tmdb_id)
+    logger.info(f"Movie {tmdb_id} {'stale, refreshing' if movie else 'not cached, fetching'} from TMDB")
+    try:
+        payload = await tmdb_client.get_movie(tmdb_id)
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 404:
+            logger.info(f"Movie {tmdb_id} not found on TMDB")
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie not found") from exc
+        raise
     return upsert_movie(db, payload)
 
 
@@ -129,9 +142,17 @@ def upsert_person(db: Session, payload: dict) -> Person:
 async def get_or_sync_person(db: Session, tmdb_id: int) -> Person:
     person = db.get(Person, tmdb_id)
     if person is not None and not _is_stale(person.synced_at):
+        logger.debug(f"Person {tmdb_id} served from cache")
         return person
 
-    payload = await tmdb_client.get_person(tmdb_id)
+    logger.info(f"Person {tmdb_id} {'stale, refreshing' if person else 'not cached, fetching'} from TMDB")
+    try:
+        payload = await tmdb_client.get_person(tmdb_id)
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 404:
+            logger.info(f"Person {tmdb_id} not found on TMDB")
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Person not found") from exc
+        raise
     return upsert_person(db, payload)
 
 
@@ -141,8 +162,10 @@ async def get_or_sync_feed(db: Session, feed_key: str) -> list[dict]:
     cache = db.get(FeedCache, feed_key)
     ttl = timedelta(hours=6)
     if cache is not None and datetime.now(timezone.utc) - cache.synced_at.replace(tzinfo=timezone.utc) < ttl:
+        logger.debug(f"Feed '{feed_key}' served from cache")
         return cache.movie_ids
 
+    logger.info(f"Feed '{feed_key}' cache {'expired' if cache else 'missing'}, refreshing from TMDB")
     payload = await tmdb_client.get_feed(feed_key)
     items = payload.get("results", [])
     if cache is None:

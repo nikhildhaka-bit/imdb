@@ -17,5 +17,7 @@ class Settings(BaseSettings):
     # so it must be off here and switched on once the app is served over https.
     cookie_secure: bool = False
 
+    log_level: str = "INFO"
+
 
 settings = Settings()

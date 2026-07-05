@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 import jwt
@@ -17,12 +18,20 @@ from database import get_db
 from models import RefreshToken, User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
+
+
+def _mask_email(email: str) -> str:
+    """Never write raw emails to logs (PII) — keep just enough to spot patterns while debugging."""
+    local, _, domain = email.partition("@")
+    return f"{local[:2]}***@{domain}"
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterIn, response: Response, db: Session = Depends(get_db)):
     email = payload.email.lower()
     if db.query(User).filter(User.email == email).first():
+        logger.warning(f"Registration rejected — email already in use: {_mask_email(email)}")
         raise HTTPException(status.HTTP_409_CONFLICT, "An account with this email already exists")
 
     user = User(email=email, password_hash=hash_password(payload.password), display_name=payload.display_name)
@@ -30,6 +39,7 @@ def register(payload: RegisterIn, response: Response, db: Session = Depends(get_
     db.commit()
     db.refresh(user)
 
+    logger.info(f"New user registered: user_id={user.id}")
     set_auth_cookies(response, db, user.id)
     return user
 
@@ -39,8 +49,10 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
     email = payload.email.lower()
     user = db.query(User).filter(User.email == email).first()
     if user is None or not verify_password(payload.password, user.password_hash):
+        logger.warning(f"Failed login attempt for {_mask_email(email)}")
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
 
+    logger.info(f"User {user.id} logged in")
     set_auth_cookies(response, db, user.id)
     return user
 
@@ -66,6 +78,7 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
     is_reused = stored is None or stored.revoked_at is not None or stored.expires_at.replace(tzinfo=timezone.utc) < now
     if is_reused:
         # Replay of an already-rotated (or unknown/expired) refresh token — revoke the whole chain.
+        logger.warning(f"Refresh token reuse/expiry detected (jti={payload.get('jti')}) — revoking token chain")
         if stored is not None:
             db.query(RefreshToken).filter(RefreshToken.user_id == stored.user_id, RefreshToken.revoked_at.is_(None)).update(
                 {"revoked_at": now}
@@ -77,6 +90,7 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
     stored.revoked_at = now
     db.commit()
 
+    logger.debug(f"Rotated refresh token for user {payload['sub']}")
     set_auth_cookies(response, db, payload["sub"])
 
 
@@ -90,6 +104,7 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
             if stored is not None:
                 stored.revoked_at = datetime.now(timezone.utc)
                 db.commit()
+                logger.info(f"User {payload.get('sub')} logged out")
         except jwt.PyJWTError:
-            pass
+            logger.debug("Logout called with an already-invalid refresh token — clearing cookies anyway")
     clear_auth_cookies(response)

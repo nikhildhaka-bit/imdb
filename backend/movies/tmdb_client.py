@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 import time
 
@@ -7,6 +8,7 @@ import httpx
 from config import settings
 
 BASE_URL = "https://api.themoviedb.org/3"
+logger = logging.getLogger(__name__)
 
 
 class TokenBucket:
@@ -69,13 +71,23 @@ class TMDBClient:
     async def _fetch_with_retry(self, path: str, params: dict | None, max_retries: int = 4) -> dict:
         for attempt in range(max_retries):
             await self._bucket.acquire()
+            start = time.monotonic()
             response = await self._client.get(path, params=params)
+            duration_ms = (time.monotonic() - start) * 1000
             if response.status_code == 429:
                 backoff = (2**attempt) + random.random()
+                logger.warning(f"TMDB rate-limited on {path} (attempt {attempt + 1}/{max_retries}), backing off {backoff:.1f}s")
                 await asyncio.sleep(backoff)
                 continue
-            response.raise_for_status()
+            if response.status_code == 404:
+                logger.info(f"TMDB request: {path} -> 404 ({duration_ms:.0f}ms)")
+                response.raise_for_status()
+            elif response.status_code >= 400:
+                logger.error(f"TMDB request failed: {path} -> {response.status_code} ({duration_ms:.0f}ms)")
+                response.raise_for_status()
+            logger.debug(f"TMDB request: {path} -> {response.status_code} ({duration_ms:.0f}ms)")
             return response.json()
+        logger.error(f"TMDB request exhausted all {max_retries} retries: {path}")
         response.raise_for_status()
         return response.json()
 
