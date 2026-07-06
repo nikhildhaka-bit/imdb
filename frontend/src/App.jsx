@@ -7,6 +7,7 @@ import HomePage from "./features/browse/HomePage";
 import MoviesPage from "./features/browse/MoviesPage";
 import SearchPage from "./features/search/SearchPage";
 import MovieDetailPage from "./features/movie/MovieDetailPage";
+import TvShowDetailPage from "./features/tv/TvShowDetailPage";
 import PersonDetailPage from "./features/person/PersonDetailPage";
 import AuthPage from "./features/auth/AuthPage";
 import ProfilePage from "./features/profile/ProfilePage";
@@ -27,6 +28,7 @@ export default function App() {
               <Route path="/movies" element={<MoviesPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/movie/:id" element={<MovieDetailPage />} />
+              <Route path="/tv/:id" element={<TvShowDetailPage />} />
               <Route path="/person/:id" element={<PersonDetailPage />} />
               <Route path="/login" element={<AuthPage />} />
               <Route path="/register" element={<AuthPage />} />

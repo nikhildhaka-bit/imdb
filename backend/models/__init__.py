@@ -1,6 +1,7 @@
 from database import Base
 from models.user import User
 from models.movie import Genre, Movie, MovieCredit, MovieGenre, Person
+from models.tv import TvShow, TvShowCredit, TvShowGenre
 from models.feed_cache import FeedCache
 from models.rating import Rating
 from models.review import Review
@@ -15,6 +16,9 @@ __all__ = [
     "MovieCredit",
     "MovieGenre",
     "Person",
+    "TvShow",
+    "TvShowCredit",
+    "TvShowGenre",
     "FeedCache",
     "Rating",
     "Review",

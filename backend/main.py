@@ -11,6 +11,7 @@ from me.router import router as me_router
 from movies.router import router as movies_router
 from people.router import router as people_router
 from search.router import router as search_router
+from tv.router import router as tv_router
 from watchlist.router import router as watchlist_router
 
 setup_logging()
@@ -46,6 +47,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(movies_router, prefix="/api/v1")
 app.include_router(people_router, prefix="/api/v1")
 app.include_router(search_router, prefix="/api/v1")
+app.include_router(tv_router, prefix="/api/v1")
 app.include_router(watchlist_router, prefix="/api/v1")
 app.include_router(me_router, prefix="/api/v1")
 

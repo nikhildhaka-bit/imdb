@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../shared/api";
 import { gradientFor } from "../../shared/gradient";
+import { resultPath } from "../../shared/mediaPath";
 
 const THUMB_BASE = "https://image.tmdb.org/t/p/w92";
 
@@ -44,7 +45,7 @@ export default function SearchBar() {
 
   function goTo(item) {
     setOpen(false);
-    navigate(item.media_type === "person" ? `/person/${item.id}` : `/movie/${item.id}`);
+    navigate(resultPath(item));
   }
 
   return (

@@ -100,6 +100,9 @@ class TMDBClient:
     async def get_person(self, tmdb_id: int) -> dict:
         return await self._get(f"/person/{tmdb_id}", {"append_to_response": "movie_credits"})
 
+    async def get_tv_show(self, tmdb_id: int) -> dict:
+        return await self._get(f"/tv/{tmdb_id}", {"append_to_response": "credits,videos"})
+
     async def search_multi(self, query: str, page: int = 1) -> dict:
         return await self._get("/search/multi", {"query": query, "page": page, "include_adult": "false"})
 

@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../shared/api";
 import { gradientFor } from "../../shared/gradient";
+import { resultPath } from "../../shared/mediaPath";
 import { GridSkeleton } from "../../shared/ui/Skeleton";
 
 const POSTER_BASE = "https://image.tmdb.org/t/p/w342";
@@ -54,7 +55,7 @@ export default function SearchPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-[18px]">
           {items.map((item) => (
-            <Link key={`${item.media_type}-${item.id}`} to={item.media_type === "person" ? `/person/${item.id}` : `/movie/${item.id}`}>
+            <Link key={`${item.media_type}-${item.id}`} to={resultPath(item)}>
               <div
                 className="relative w-full aspect-[2/3] rounded-[10px] overflow-hidden border border-white/[0.08] flex items-end p-[11px] box-border cursor-pointer transition-transform duration-200 hover:-translate-y-2 hover:scale-[1.02]"
                 style={{ background: gradientFor(item.id) }}

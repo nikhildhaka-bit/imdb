@@ -8,6 +8,9 @@ router = APIRouter(tags=["search"])
 
 
 def _to_result(item: dict) -> SearchResultOut | None:
+    # TMDB IDs for movies and TV shows are separate, overlapping namespaces — the
+    # frontend must route "tv" hits to /tv/{id}, never /movie/{id}, or it'll land
+    # on a completely unrelated title that happens to share that numeric id.
     media_type = item.get("media_type")
     if media_type not in ("movie", "tv", "person"):
         return None
