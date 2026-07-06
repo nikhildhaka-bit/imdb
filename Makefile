@@ -21,8 +21,8 @@ install-backend: ## Install backend dependencies into backend/venv
 install-frontend: ## Install frontend dependencies
 	cd $(FRONTEND_DIR) && npm install
 
-backend: ## Run the FastAPI backend (http://localhost:8000)
-	cd $(BACKEND_DIR) && ../$(VENV_UVICORN) main:app --reload
+backend: ## Run the FastAPI backend (http://localhost:8001)
+	cd $(BACKEND_DIR) && ../$(VENV_UVICORN) main:app --reload --port 8001
 
 frontend: ## Run the Vite dev server (http://localhost:5173)
 	cd $(FRONTEND_DIR) && npm run dev

@@ -7,7 +7,6 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./marquee.db"
     jwt_secret: str
     tmdb_read_access_token: str
-    frontend_origin: str = "http://localhost:5173"
 
     access_token_ttl_minutes: int = 15
     refresh_token_ttl_days: int = 30
